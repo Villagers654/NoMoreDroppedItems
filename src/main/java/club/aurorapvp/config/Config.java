@@ -20,7 +20,7 @@ public class Config {
   public static void generateDefaults() {
     final HashMap<String, Object> DEFAULTS = new HashMap<>();
 
-    DEFAULTS.put("excluded-types", List.of("AIR", "BEDROCK"));
+    DEFAULTS.put("excluded-items", List.of("AIR", "BEDROCK"));
 
     for (String path : DEFAULTS.keySet()) {
       if (!get().isSet(path) || get().getString(path) == null) {
