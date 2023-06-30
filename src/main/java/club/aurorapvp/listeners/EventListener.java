@@ -15,6 +15,7 @@ public class EventListener implements Listener {
       }
     }
 
+    event.getItemDrop().remove();
     event.setCancelled(true);
   }
 }
