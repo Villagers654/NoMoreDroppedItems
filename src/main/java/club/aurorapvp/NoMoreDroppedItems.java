@@ -9,19 +9,15 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public final class NoMoreDroppedItems extends JavaPlugin implements Listener {
-  public static Plugin PLUGIN;
+  public static Plugin INSTANCE;
   public static File DATA_FOLDER;
 
   @Override
   public void onEnable() {
-    PLUGIN = this;
-    DATA_FOLDER = this.getDataFolder();
+    INSTANCE = this;
+
+    Config.init();
 
     getServer().getPluginManager().registerEvents(new EventListener(), this);
-    try {
-      Config.generateDefaults();
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
   }
 }

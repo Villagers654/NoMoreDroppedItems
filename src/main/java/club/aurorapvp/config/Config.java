@@ -3,23 +3,35 @@ package club.aurorapvp.config;
 import club.aurorapvp.NoMoreDroppedItems;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 public class Config {
-  private static final HashMap<String, Object> DEFAULTS = new HashMap<>();
-  private static final File FILE = new File(NoMoreDroppedItems.DATA_FOLDER, "config.yml");
+  private static final File FILE =
+      new File(NoMoreDroppedItems.INSTANCE.getDataFolder(), "config.yml");
   private static YamlConfiguration config;
 
-  public static void generateDefaults() throws IOException {
-    DEFAULTS.put("excluded-items", new ArrayList<String>().add("example_block"));
+  public static void init() {
+    reload();
+    generateDefaults();
+  }
+
+  public static void generateDefaults() {
+    final HashMap<String, Object> DEFAULTS = new HashMap<>();
+
+    DEFAULTS.put("excluded-types", List.of("AIR", "BEDROCK"));
 
     for (String path : DEFAULTS.keySet()) {
-      if (!get().contains(path) || get().getString(path) == null) {
+      if (!get().isSet(path) || get().getString(path) == null) {
         get().set(path, DEFAULTS.get(path));
-        get().save(FILE);
       }
+    }
+
+    try {
+      get().save(FILE);
+    } catch (IOException e) {
+      NoMoreDroppedItems.INSTANCE.getLogger().severe("Failed to save config file");
     }
   }
 
@@ -27,13 +39,17 @@ public class Config {
     return config;
   }
 
-  public static void reload() throws IOException {
+  @SuppressWarnings("ResultOfMethodCallIgnored")
+  public static void reload() {
     if (!FILE.exists()) {
-      FILE.getParentFile().mkdirs();
-
-      FILE.createNewFile();
+      try {
+        FILE.getParentFile().mkdirs();
+        FILE.createNewFile();
+      } catch (IOException e) {
+        NoMoreDroppedItems.INSTANCE.getLogger().severe("Failed to generate config file");
+      }
     }
     config = YamlConfiguration.loadConfiguration(FILE);
-    NoMoreDroppedItems.PLUGIN.getLogger().info("Config reloaded!");
+    NoMoreDroppedItems.INSTANCE.getLogger().info("Config reloaded!");
   }
 }
