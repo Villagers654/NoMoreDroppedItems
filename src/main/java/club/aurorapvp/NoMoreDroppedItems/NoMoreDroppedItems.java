@@ -22,7 +22,7 @@ public final class NoMoreDroppedItems extends JavaPlugin implements Listener {
 
     getLogger()
         .info(
-            "AuroraCombat loaded in "
+            "NoMoreDroppedItems loaded in "
                 + Math.subtractExact(System.currentTimeMillis(), startTime)
                 + "ms");
   }
