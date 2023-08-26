@@ -1,7 +1,12 @@
 name: NoMoreDroppedItems
 version: '${version}'
-main: club.aurorapvp.NoMoreDroppedItems
-api-version: 1.19
+main: club.aurorapvp.NoMoreDroppedItems.NoMoreDroppedItems
+api-version: '1.20'
 authors: [ Villagers654 ]
 description: Gets rid of dropped items without disabling dropping items
 website: aurorapvp.club
+
+dependencies:
+  server:
+    WorldGuard:
+      required: true
