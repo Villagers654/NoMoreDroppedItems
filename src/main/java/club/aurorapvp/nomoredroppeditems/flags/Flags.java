@@ -1,6 +1,6 @@
-package club.aurorapvp.NoMoreDroppedItems.flags;
+package club.aurorapvp.nomoredroppeditems.flags;
 
-import club.aurorapvp.NoMoreDroppedItems.NoMoreDroppedItems;
+import club.aurorapvp.nomoredroppeditems.NoMoreDroppedItems;
 import com.sk89q.worldguard.WorldGuard;
 import com.sk89q.worldguard.protection.flags.StateFlag;
 import com.sk89q.worldguard.protection.flags.registry.FlagConflictException;
@@ -16,7 +16,7 @@ public class Flags {
     FlagRegistry registry = WorldGuard.getInstance().getFlagRegistry();
 
     try {
-      StateFlag flag = new StateFlag("drops-enabled", true);
+      StateFlag flag = new StateFlag("item-drops", true);
       registry.register(flag);
       DROPS_ENABLED = flag;
     } catch (FlagConflictException e) {
@@ -25,7 +25,7 @@ public class Flags {
     }
 
     try {
-      StateFlag flag = new StateFlag("death-drops-enabled", true);
+      StateFlag flag = new StateFlag("death-drops", true);
       registry.register(flag);
       DEATH_DROPS_ENABLED = flag;
     } catch (FlagConflictException e) {

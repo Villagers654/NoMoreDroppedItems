@@ -1,6 +1,6 @@
 name: NoMoreDroppedItems
 version: '${version}'
-main: club.aurorapvp.NoMoreDroppedItems.NoMoreDroppedItems
+main: club.aurorapvp.nomoredroppeditems.NoMoreDroppedItems
 api-version: '1.20'
 authors: [ Villagers654 ]
 description: Gets rid of dropped items without disabling dropping items

@@ -1,6 +1,6 @@
-package club.aurorapvp.NoMoreDroppedItems.config;
+package club.aurorapvp.nomoredroppeditems.config;
 
-import club.aurorapvp.NoMoreDroppedItems.NoMoreDroppedItems;
+import club.aurorapvp.nomoredroppeditems.NoMoreDroppedItems;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;

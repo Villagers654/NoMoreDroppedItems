@@ -1,7 +1,7 @@
-package club.aurorapvp.NoMoreDroppedItems.listeners;
+package club.aurorapvp.nomoredroppeditems.listeners;
 
-import club.aurorapvp.NoMoreDroppedItems.config.Config;
-import club.aurorapvp.NoMoreDroppedItems.flags.Flags;
+import club.aurorapvp.nomoredroppeditems.config.Config;
+import club.aurorapvp.nomoredroppeditems.flags.Flags;
 import com.sk89q.worldedit.bukkit.BukkitAdapter;
 import com.sk89q.worldguard.WorldGuard;
 import com.sk89q.worldguard.protection.ApplicableRegionSet;
