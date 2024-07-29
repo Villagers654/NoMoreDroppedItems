@@ -6,42 +6,39 @@ import com.destroystokyo.paper.event.block.BlockDestroyEvent;
 import com.sk89q.worldedit.bukkit.BukkitAdapter;
 import com.sk89q.worldguard.WorldGuard;
 import com.sk89q.worldguard.protection.ApplicableRegionSet;
+import com.sk89q.worldguard.protection.flags.StateFlag;
 import com.sk89q.worldguard.protection.flags.StateFlag.State;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import com.sk89q.worldguard.protection.regions.RegionContainer;
 import com.sk89q.worldguard.protection.regions.RegionQuery;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
+import org.bukkit.Location;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.inventory.ItemStack;
 
 public class EventListener implements Listener {
   @EventHandler
-  public void onBlockDestroyed(BlockDestroyEvent event) {
-    for (Object entry : Objects.requireNonNull(Config.get().getList("excluded-items"))) {
-      for (ItemStack item : event.getBlock().getDrops()) {
-        if (item.getType().name().equals(entry)) {
-          return;
-        }
-      }
+  public void onBlockBroken(BlockBreakEvent event) {
+    Block block = event.getBlock();
+
+    if (shouldPreventDrop(Flags.BLOCK_DROPS_ENABLED, block.getDrops(), block.getLocation())) {
+      event.setDropItems(false);
     }
+  }
 
-    RegionContainer container = WorldGuard.getInstance().getPlatform().getRegionContainer();
-    RegionQuery query = container.createQuery();
-    ApplicableRegionSet set =
-        query.getApplicableRegions(BukkitAdapter.adapt(event.getBlock().getLocation()));
+  @EventHandler
+  public void onBlockDestroyed(BlockDestroyEvent event) {
+    Block block = event.getBlock();
 
-    for (ProtectedRegion region : set.getRegions()) {
-      if (Objects.equals(region.getFlag(Flags.BLOCK_DROPS_ENABLED), State.DENY)) {
-        event.setWillDrop(false);
-      }
+    if (shouldPreventDrop(Flags.BLOCK_DROPS_ENABLED, block.getDrops(), block.getLocation())) {
+      event.setWillDrop(false);
     }
   }
 
@@ -49,20 +46,9 @@ public class EventListener implements Listener {
   public void onPlayerDropItem(PlayerDropItemEvent event) {
     Item item = event.getItemDrop();
 
-    for (Object entry : Objects.requireNonNull(Config.get().getList("excluded-items"))) {
-      if (item.getItemStack().getType().name().equals(entry)) {
-        return;
-      }
-    }
-
-    RegionContainer container = WorldGuard.getInstance().getPlatform().getRegionContainer();
-    RegionQuery query = container.createQuery();
-    ApplicableRegionSet set = query.getApplicableRegions(BukkitAdapter.adapt(item.getLocation()));
-
-    for (ProtectedRegion region : set.getRegions()) {
-      if (Objects.equals(region.getFlag(Flags.PLAYER_DROPS_ENABLED), State.DENY)) {
-        item.remove();
-      }
+    if (shouldPreventDrop(
+        Flags.PLAYER_DROPS_ENABLED, Set.of(item.getItemStack()), item.getLocation())) {
+      item.remove();
     }
   }
 
@@ -85,5 +71,27 @@ public class EventListener implements Listener {
         itemStacks.clear();
       }
     }
+  }
+
+  private boolean shouldPreventDrop(StateFlag flag, Collection<ItemStack> drops, Location loc) {
+    for (Object entry : Objects.requireNonNull(Config.get().getList("excluded-items"))) {
+      for (ItemStack item : drops) {
+        if (item.getType().name().equals(entry)) {
+          return false;
+        }
+      }
+    }
+
+    RegionContainer container = WorldGuard.getInstance().getPlatform().getRegionContainer();
+    RegionQuery query = container.createQuery();
+    ApplicableRegionSet set = query.getApplicableRegions(BukkitAdapter.adapt(loc));
+
+    for (ProtectedRegion region : set.getRegions()) {
+      if (Objects.equals(region.getFlag(flag), State.DENY)) {
+        return true;
+      }
+    }
+
+    return false;
   }
 }
