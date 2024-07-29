@@ -2,6 +2,7 @@ package club.aurorapvp.nomoredroppeditems.listeners;
 
 import club.aurorapvp.nomoredroppeditems.config.Config;
 import club.aurorapvp.nomoredroppeditems.flags.Flags;
+import com.destroystokyo.paper.event.block.BlockDestroyEvent;
 import com.sk89q.worldedit.bukkit.BukkitAdapter;
 import com.sk89q.worldguard.WorldGuard;
 import com.sk89q.worldguard.protection.ApplicableRegionSet;
@@ -23,6 +24,28 @@ import org.bukkit.inventory.ItemStack;
 
 public class EventListener implements Listener {
   @EventHandler
+  public void onBlockDestroyed(BlockDestroyEvent event) {
+    for (Object entry : Objects.requireNonNull(Config.get().getList("excluded-items"))) {
+      for (ItemStack item : event.getBlock().getDrops()) {
+        if (item.getType().name().equals(entry)) {
+          return;
+        }
+      }
+    }
+
+    RegionContainer container = WorldGuard.getInstance().getPlatform().getRegionContainer();
+    RegionQuery query = container.createQuery();
+    ApplicableRegionSet set =
+        query.getApplicableRegions(BukkitAdapter.adapt(event.getBlock().getLocation()));
+
+    for (ProtectedRegion region : set.getRegions()) {
+      if (Objects.equals(region.getFlag(Flags.BLOCK_DROPS_ENABLED), State.DENY)) {
+        event.setWillDrop(false);
+      }
+    }
+  }
+
+  @EventHandler
   public void onPlayerDropItem(PlayerDropItemEvent event) {
     Item item = event.getItemDrop();
 
@@ -37,7 +60,7 @@ public class EventListener implements Listener {
     ApplicableRegionSet set = query.getApplicableRegions(BukkitAdapter.adapt(item.getLocation()));
 
     for (ProtectedRegion region : set.getRegions()) {
-      if (Objects.equals(region.getFlag(Flags.DROPS_ENABLED), State.DENY)) {
+      if (Objects.equals(region.getFlag(Flags.PLAYER_DROPS_ENABLED), State.DENY)) {
         item.remove();
       }
     }
@@ -48,7 +71,8 @@ public class EventListener implements Listener {
     Player player = event.getPlayer();
     List<ItemStack> itemStacks = event.getDrops();
 
-    Set<Object> excludedItems = new HashSet<>(Objects.requireNonNull(Config.get().getList("excluded-items")));
+    Set<Object> excludedItems =
+        new HashSet<>(Objects.requireNonNull(Config.get().getList("excluded-items")));
 
     itemStacks.removeIf(itemStack -> excludedItems.contains(itemStack.getType().name()));
 
