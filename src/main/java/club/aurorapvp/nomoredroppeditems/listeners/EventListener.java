@@ -23,7 +23,7 @@ import org.bukkit.inventory.ItemStack;
 
 public class EventListener implements Listener {
   @EventHandler
-  public void onItemSpawn(PlayerDropItemEvent event) {
+  public void onPlayerDropItem(PlayerDropItemEvent event) {
     Item item = event.getItemDrop();
 
     for (Object entry : Objects.requireNonNull(Config.get().getList("excluded-items"))) {
@@ -38,11 +38,9 @@ public class EventListener implements Listener {
 
     for (ProtectedRegion region : set.getRegions()) {
       if (Objects.equals(region.getFlag(Flags.DROPS_ENABLED), State.DENY)) {
-        event.getItemDrop().remove();
+        item.remove();
       }
     }
-
-    item.remove();
   }
 
   @EventHandler
