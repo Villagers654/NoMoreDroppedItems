@@ -26,15 +26,6 @@ public class Flags {
     }
 
     try {
-      StateFlag flag = new StateFlag("block-drops", true);
-      registry.register(flag);
-      BLOCK_DROPS_ENABLED = flag;
-    } catch (FlagConflictException e) {
-      NoMoreDroppedItems.INSTANCE.getLogger()
-              .log(Level.SEVERE, "Unable to register Block Drops Enabled flag", e);
-    }
-
-    try {
       StateFlag flag = new StateFlag("death-drops", true);
       registry.register(flag);
       DEATH_DROPS_ENABLED = flag;
