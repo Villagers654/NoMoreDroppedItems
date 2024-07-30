@@ -52,4 +52,26 @@ public class EventListener implements Listener {
       }
     }
   }
+
+  private boolean shouldPreventDrop(StateFlag flag, Collection<ItemStack> drops, Location loc) {
+    for (Object entry : Objects.requireNonNull(Config.get().getList("excluded-items"))) {
+      for (ItemStack item : drops) {
+        if (item.getType().name().equals(entry)) {
+          return false;
+        }
+      }
+    }
+
+    RegionContainer container = WorldGuard.getInstance().getPlatform().getRegionContainer();
+    RegionQuery query = container.createQuery();
+    ApplicableRegionSet set = query.getApplicableRegions(BukkitAdapter.adapt(loc));
+
+    for (ProtectedRegion region : set.getRegions()) {
+      if (Objects.equals(region.getFlag(flag), State.DENY)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
 }
