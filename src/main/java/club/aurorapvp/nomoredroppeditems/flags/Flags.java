@@ -12,6 +12,7 @@ public class Flags {
   public static StateFlag PLAYER_DROPS_ENABLED;
   public static StateFlag BLOCK_DROPS_ENABLED;
   public static StateFlag DEATH_DROPS_ENABLED;
+  public static StateFlag EXPLOSION_DROPS_ENABLED;
 
   public static void init() {
     FlagRegistry registry = WorldGuard.getInstance().getFlagRegistry();
@@ -23,6 +24,24 @@ public class Flags {
     } catch (FlagConflictException e) {
       NoMoreDroppedItems.INSTANCE.getLogger()
           .log(Level.SEVERE, "Unable to register Player Drops Enabled flag", e);
+    }
+
+    try {
+      StateFlag flag = new StateFlag("explosion-drops", true);
+      registry.register(flag);
+      EXPLOSION_DROPS_ENABLED = flag;
+    } catch (FlagConflictException e) {
+      NoMoreDroppedItems.INSTANCE.getLogger()
+              .log(Level.SEVERE, "Unable to register Explosion Drops Enabled flag", e);
+    }
+
+    try {
+      StateFlag flag = new StateFlag("block-drops", true);
+      registry.register(flag);
+      BLOCK_DROPS_ENABLED = flag;
+    } catch (FlagConflictException e) {
+      NoMoreDroppedItems.INSTANCE.getLogger()
+              .log(Level.SEVERE, "Unable to register Block Drops Enabled flag", e);
     }
 
     try {
