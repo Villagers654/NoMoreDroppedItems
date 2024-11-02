@@ -12,6 +12,7 @@ import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import com.sk89q.worldguard.protection.regions.RegionContainer;
 import com.sk89q.worldguard.protection.regions.RegionQuery;
 import java.util.*;
+import java.util.stream.Stream;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -23,6 +24,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockDropItemEvent;
 import org.bukkit.event.block.BlockExplodeEvent;
+import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.inventory.ItemStack;
@@ -76,35 +78,49 @@ public class EventListener implements Listener {
   }
 
   @EventHandler(priority = EventPriority.MONITOR)
-  public void onBlockExplode(BlockExplodeEvent event) {
-    Set<String> excludedItemsSet = new HashSet<>(excludedItems);
+  public void onEntityExplode(EntityExplodeEvent event) {
+    World world = event.getLocation().getWorld();
 
+    handleExplosion(world, event.blockList());
+  }
+
+
+  @EventHandler(priority = EventPriority.MONITOR)
+  public void onBlockExplode(BlockExplodeEvent event) {
     World world = event.getBlock().getWorld();
+
+    handleExplosion(world, event.blockList());
+  }
+
+  private void handleExplosion(World world, List<Block> blocks) {
+    Stream<Location> locations = blocks.stream().map(Block::getLocation);
 
     new BukkitRunnable() {
       @Override
       public void run() {
-        for (Block block : event.blockList()) {
-          Location loc = block.getLocation();
+        locations.forEach(
+                loc -> {
+                  Collection<Entity> existingDrops =
+                          world.getNearbyEntities(loc, 1, 1, 1, entity -> entity instanceof Item);
 
-          Collection<Entity> existingDrops =
-              world.getNearbyEntities(loc, 1, 1, 1, entity -> entity instanceof Item);
-
-          existingDrops.stream()
-              .filter(entity -> entity instanceof Item)
-              .map(entity -> (Item) entity)
-              .map(Item::getItemStack)
-              .map(ItemStack::getType)
-              .map(Enum::name)
-              .filter(itemName -> !excludedItemsSet.contains(itemName))
-              .forEach(
-                  itemName ->
-                      existingDrops.stream()
-                          .filter(
-                              entity ->
-                                  ((Item) entity).getItemStack().getType().name().equals(itemName))
-                          .forEach(Entity::remove));
-        }
+                  existingDrops.stream()
+                          .map(entity -> (Item) entity)
+                          .map(Item::getItemStack)
+                          .map(ItemStack::getType)
+                          .map(Enum::name)
+                          .filter(itemName -> !excludedItems.contains(itemName))
+                          .forEach(
+                                  itemName ->
+                                          existingDrops.stream()
+                                                  .filter(
+                                                          entity ->
+                                                                  ((Item) entity)
+                                                                          .getItemStack()
+                                                                          .getType()
+                                                                          .name()
+                                                                          .equals(itemName))
+                                                  .forEach(Entity::remove));
+                });
       }
     }.runTaskLater(NoMoreDroppedItems.INSTANCE, 1);
   }
