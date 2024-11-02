@@ -12,7 +12,7 @@ import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import com.sk89q.worldguard.protection.regions.RegionContainer;
 import com.sk89q.worldguard.protection.regions.RegionQuery;
 import java.util.*;
-import java.util.stream.Stream;
+import java.util.stream.Collectors;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -80,47 +80,51 @@ public class EventListener implements Listener {
   @EventHandler(priority = EventPriority.MONITOR)
   public void onEntityExplode(EntityExplodeEvent event) {
     World world = event.getLocation().getWorld();
+    Location explosionCenter = event.getLocation();
 
-    handleExplosion(world, event.blockList());
+    handleExplosion(world, explosionCenter, event.blockList());
   }
-
 
   @EventHandler(priority = EventPriority.MONITOR)
   public void onBlockExplode(BlockExplodeEvent event) {
     World world = event.getBlock().getWorld();
+    Location explosionCenter = event.getBlock().getLocation();
 
-    handleExplosion(world, event.blockList());
+    handleExplosion(world, explosionCenter, event.blockList());
   }
 
-  private void handleExplosion(World world, List<Block> blocks) {
-    Stream<Location> locations = blocks.stream().map(Block::getLocation);
+  private void handleExplosion(World world, Location center, List<Block> blocks) {
+    if (blocks.isEmpty()) return;
+
+    double maxDistance =
+        blocks.stream().mapToDouble(block -> block.getLocation().distance(center)).max().orElse(0)
+            + 1.0;
 
     new BukkitRunnable() {
       @Override
       public void run() {
-        locations.forEach(
-                loc -> {
-                  Collection<Entity> existingDrops =
-                          world.getNearbyEntities(loc, 1, 1, 1, entity -> entity instanceof Item);
+        Collection<Entity> nearbyEntities =
+            world.getNearbyEntities(
+                center,
+                maxDistance,
+                maxDistance,
+                maxDistance,
+                entity ->
+                    entity instanceof Item && entity.getLocation().distance(center) <= maxDistance);
 
-                  existingDrops.stream()
-                          .map(entity -> (Item) entity)
-                          .map(Item::getItemStack)
-                          .map(ItemStack::getType)
-                          .map(Enum::name)
-                          .filter(itemName -> !excludedItems.contains(itemName))
-                          .forEach(
-                                  itemName ->
-                                          existingDrops.stream()
-                                                  .filter(
-                                                          entity ->
-                                                                  ((Item) entity)
-                                                                          .getItemStack()
-                                                                          .getType()
-                                                                          .name()
-                                                                          .equals(itemName))
-                                                  .forEach(Entity::remove));
-                });
+        List<Item> itemsWithinSphere =
+            nearbyEntities.stream().map(entity -> (Item) entity).toList();
+
+        Map<String, List<Item>> itemsByType =
+            itemsWithinSphere.stream()
+                .collect(Collectors.groupingBy(item -> item.getItemStack().getType().name()));
+
+        itemsByType.forEach(
+            (itemName, items) -> {
+              if (!excludedItems.contains(itemName)) {
+                items.forEach(Entity::remove);
+              }
+            });
       }
     }.runTaskLater(NoMoreDroppedItems.INSTANCE, 1);
   }
