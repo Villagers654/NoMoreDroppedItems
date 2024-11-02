@@ -38,8 +38,7 @@ public class EventListener implements Listener {
   public void onPlayerDropItem(PlayerDropItemEvent event) {
     Item item = event.getItemDrop();
 
-    if (shouldPreventDrop(
-        Flags.PLAYER_DROPS_ENABLED, Set.of(item.getItemStack()), item.getLocation())) {
+    if (shouldPreventDrop(Flags.PLAYER_DROPS_ENABLED, item.getItemStack(), item.getLocation())) {
       item.remove();
     }
   }
@@ -70,8 +69,8 @@ public class EventListener implements Listener {
     Location loc = event.getBlock().getLocation();
     Collection<Item> items = event.getItems();
 
-    if (shouldPreventDrop(Flags.BLOCK_DROPS_ENABLED, items, loc)) {
-      for (Item item : items) {
+    for (Item item : items) {
+      if (shouldPreventDrop(Flags.BLOCK_DROPS_ENABLED, item, loc)) {
         item.remove();
       }
     }
@@ -94,7 +93,9 @@ public class EventListener implements Listener {
   }
 
   private void handleExplosion(World world, Location center, List<Block> blocks) {
-    if (blocks.isEmpty()) return;
+    if (!checkFlag(Flags.EXPLOSION_DROPS_ENABLED, center)) {
+      return;
+    }
 
     double maxDistance =
         blocks.stream().mapToDouble(block -> block.getLocation().distance(center)).max().orElse(0)
@@ -129,22 +130,13 @@ public class EventListener implements Listener {
     }.runTaskLater(NoMoreDroppedItems.INSTANCE, 1);
   }
 
-  private <T> boolean shouldPreventDrop(StateFlag flag, Collection<T> drops, Location loc) {
-    for (Object entry : excludedItems) {
-      for (T item : drops) {
-        String itemName;
-        if (item instanceof Item) {
-          itemName = ((Item) item).getType().name();
-        } else if (item instanceof ItemStack) {
-          itemName = ((ItemStack) item).getType().name();
-        } else {
-          continue;
-        }
+  private boolean shouldPreventDrop(StateFlag flag, Item drop, Location loc) {
+    return shouldPreventDrop(flag, drop.getItemStack(), loc);
+  }
 
-        if (itemName.equals(entry)) {
-          return false;
-        }
-      }
+  private boolean shouldPreventDrop(StateFlag flag, ItemStack drop, Location loc) {
+    if (excludedItems.contains(drop.getType().name())) {
+      return false;
     }
 
     return checkFlag(flag, loc);
