@@ -1,7 +1,6 @@
 package club.aurorapvp.nomoredroppeditems.events.listeners;
 
 import club.aurorapvp.nomoredroppeditems.NoMoreDroppedItems;
-import club.aurorapvp.nomoredroppeditems.config.Config;
 import club.aurorapvp.nomoredroppeditems.flags.Flags;
 import com.sk89q.worldedit.bukkit.BukkitAdapter;
 import com.sk89q.worldguard.WorldGuard;
@@ -33,7 +32,11 @@ import org.bukkit.scheduler.BukkitRunnable;
 public class ItemDropListener implements Listener {
 
   @SuppressWarnings("unchecked")
-  private final List<String> excludedItems = (List<String>) Config.get().getList("excluded-items");
+  private final Set<String> excludedItems =
+      new HashSet<>(
+          (List<String>)
+              Objects.requireNonNull(
+                  NoMoreDroppedItems.getInstance().getConfig().getList("excluded-items")));
 
   @EventHandler
   public void onPlayerDropItem(PlayerDropItemEvent event) {
@@ -49,10 +52,11 @@ public class ItemDropListener implements Listener {
     Player player = event.getPlayer();
     List<ItemStack> itemStacks = event.getDrops();
 
-    Set<Object> excludedItems =
-        new HashSet<>(Objects.requireNonNull(Config.get().getList("excluded-items")));
-
-    itemStacks.removeIf(itemStack -> excludedItems.contains(itemStack.getType().name()));
+    itemStacks.removeIf(
+        itemStack -> {
+          assert excludedItems != null;
+          return excludedItems.contains(itemStack.getType().name());
+        });
 
     RegionContainer container = WorldGuard.getInstance().getPlatform().getRegionContainer();
     RegionQuery query = container.createQuery();
