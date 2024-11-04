@@ -6,6 +6,10 @@ authors: [ Villagers654 ]
 description: Gets rid of dropped items without disabling dropping items
 website: aurorapvp.club
 
+permissions:
+  auroraduels.command.autoinventory:
+    default: true
+
 dependencies:
   server:
     WorldGuard:

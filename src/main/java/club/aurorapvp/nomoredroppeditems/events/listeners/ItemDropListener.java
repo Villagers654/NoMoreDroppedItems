@@ -1,4 +1,4 @@
-package club.aurorapvp.nomoredroppeditems.listeners;
+package club.aurorapvp.nomoredroppeditems.events.listeners;
 
 import club.aurorapvp.nomoredroppeditems.NoMoreDroppedItems;
 import club.aurorapvp.nomoredroppeditems.config.Config;
@@ -30,9 +30,10 @@ import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 
-public class EventListener implements Listener {
+public class ItemDropListener implements Listener {
 
-  List<String> excludedItems = (List<String>) Config.get().getList("excluded-items");
+  @SuppressWarnings("unchecked")
+  private final List<String> excludedItems = (List<String>) Config.get().getList("excluded-items");
 
   @EventHandler
   public void onPlayerDropItem(PlayerDropItemEvent event) {
@@ -113,11 +114,9 @@ public class EventListener implements Listener {
                 entity ->
                     entity instanceof Item && entity.getLocation().distance(center) <= maxDistance);
 
-        List<Item> itemsWithinSphere =
-            nearbyEntities.stream().map(entity -> (Item) entity).toList();
-
         Map<String, List<Item>> itemsByType =
-            itemsWithinSphere.stream()
+            nearbyEntities.stream()
+                .map(entity -> (Item) entity)
                 .collect(Collectors.groupingBy(item -> item.getItemStack().getType().name()));
 
         itemsByType.forEach(
@@ -127,7 +126,7 @@ public class EventListener implements Listener {
               }
             });
       }
-    }.runTaskLater(NoMoreDroppedItems.INSTANCE, 1);
+    }.runTaskLater(NoMoreDroppedItems.getInstance(), 1);
   }
 
   private boolean shouldPreventDrop(StateFlag flag, Item drop, Location loc) {
