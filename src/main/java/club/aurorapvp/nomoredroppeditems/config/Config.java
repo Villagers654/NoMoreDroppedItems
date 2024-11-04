@@ -5,51 +5,57 @@ import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
+import java.util.logging.Level;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 public class Config {
-  private static final File FILE =
-      new File(NoMoreDroppedItems.INSTANCE.getDataFolder(), "config.yml");
-  private static YamlConfiguration config;
 
-  public static void init() {
-    reload();
-    generateDefaults();
+  private final File FILE = new File(NoMoreDroppedItems.getInstance().getDataFolder(), "config.yml");
+  private YamlConfiguration config;
+
+  public Config() {
+    this.reload();
+    this.generateDefaults();
   }
 
-  public static void generateDefaults() {
+  public void generateDefaults() {
     final HashMap<String, Object> DEFAULTS = new HashMap<>();
 
     DEFAULTS.put("excluded-items", List.of("AIR", "BEDROCK"));
 
     for (String path : DEFAULTS.keySet()) {
-      if (!get().isSet(path) || get().getString(path) == null) {
-        get().set(path, DEFAULTS.get(path));
+      if (!getYaml().isSet(path) || getYaml().getString(path) == null) {
+        getYaml().set(path, DEFAULTS.get(path));
       }
     }
 
     try {
-      get().save(FILE);
+      getYaml().save(FILE);
     } catch (IOException e) {
-      NoMoreDroppedItems.INSTANCE.getLogger().severe("Failed to save config file");
+      NoMoreDroppedItems.getInstance().getLogger().log(Level.SEVERE, "Failed to save config file", e);
     }
   }
 
-  public static YamlConfiguration get() {
+  public YamlConfiguration getYaml() {
     return config;
   }
 
   @SuppressWarnings("ResultOfMethodCallIgnored")
-  public static void reload() {
+  public void reload() {
     if (!FILE.exists()) {
       try {
         FILE.getParentFile().mkdirs();
         FILE.createNewFile();
+
+        config = YamlConfiguration.loadConfiguration(FILE);
+
+        this.generateDefaults();
       } catch (IOException e) {
-        NoMoreDroppedItems.INSTANCE.getLogger().severe("Failed to generate config file");
+        NoMoreDroppedItems.getInstance().getLogger()
+                .log(Level.SEVERE, "Failed to generate config file", e);
       }
     }
     config = YamlConfiguration.loadConfiguration(FILE);
-    NoMoreDroppedItems.INSTANCE.getLogger().info("Config reloaded!");
+    NoMoreDroppedItems.getInstance().getLogger().info("Config reloaded!");
   }
 }

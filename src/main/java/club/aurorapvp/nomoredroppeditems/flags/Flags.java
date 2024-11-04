@@ -22,7 +22,7 @@ public class Flags {
       registry.register(flag);
       PLAYER_DROPS_ENABLED = flag;
     } catch (FlagConflictException e) {
-      NoMoreDroppedItems.INSTANCE.getLogger()
+      NoMoreDroppedItems.getInstance().getLogger()
           .log(Level.SEVERE, "Unable to register Player Drops Enabled flag", e);
     }
 
@@ -31,7 +31,7 @@ public class Flags {
       registry.register(flag);
       EXPLOSION_DROPS_ENABLED = flag;
     } catch (FlagConflictException e) {
-      NoMoreDroppedItems.INSTANCE.getLogger()
+      NoMoreDroppedItems.getInstance().getLogger()
               .log(Level.SEVERE, "Unable to register Explosion Drops Enabled flag", e);
     }
 
@@ -40,7 +40,7 @@ public class Flags {
       registry.register(flag);
       BLOCK_DROPS_ENABLED = flag;
     } catch (FlagConflictException e) {
-      NoMoreDroppedItems.INSTANCE.getLogger()
+      NoMoreDroppedItems.getInstance().getLogger()
               .log(Level.SEVERE, "Unable to register Block Drops Enabled flag", e);
     }
 
@@ -49,7 +49,7 @@ public class Flags {
       registry.register(flag);
       DEATH_DROPS_ENABLED = flag;
     } catch (FlagConflictException e) {
-      NoMoreDroppedItems.INSTANCE.getLogger()
+      NoMoreDroppedItems.getInstance().getLogger()
           .log(Level.SEVERE, "Unable to register Death Drops Enabled flag", e);
     }
   }

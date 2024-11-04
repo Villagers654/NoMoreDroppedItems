@@ -1,26 +1,42 @@
 package club.aurorapvp.nomoredroppeditems;
 
-import club.aurorapvp.nomoredroppeditems.commands.ClearCommand;
+import club.aurorapvp.nomoredroppeditems.commands.CommandManager;
 import club.aurorapvp.nomoredroppeditems.config.Config;
+import club.aurorapvp.nomoredroppeditems.config.Lang;
+import club.aurorapvp.nomoredroppeditems.events.EventManager;
 import club.aurorapvp.nomoredroppeditems.flags.Flags;
-import club.aurorapvp.nomoredroppeditems.listeners.EventListener;
-import co.aikar.commands.PaperCommandManager;
-import org.bukkit.Bukkit;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.jetbrains.annotations.NotNull;
 
 public final class NoMoreDroppedItems extends JavaPlugin implements Listener {
 
-  public static NoMoreDroppedItems INSTANCE;
+  private static NoMoreDroppedItems INSTANCE;
+  private static Config config;
+  private static Lang lang;
+
+  public static NoMoreDroppedItems getInstance() {
+    return INSTANCE;
+  }
+
+  public @NotNull YamlConfiguration getConfig() {
+    return config.getYaml();
+  }
+
+  public Lang getLang() {
+    return lang;
+  }
+
+  public void reloadConfig() {
+    config.reload();
+  }
 
   @Override
   public void onLoad() {
     long startTime = System.currentTimeMillis();
 
     INSTANCE = this;
-
-    // Setup configs
-    Config.init();
 
     Flags.init();
 
@@ -35,14 +51,25 @@ public final class NoMoreDroppedItems extends JavaPlugin implements Listener {
   public void onEnable() {
     long startTime = System.currentTimeMillis();
 
-    Bukkit.getPluginManager().registerEvents(new EventListener(), this);
+    // Initialize configs
+    config = new Config();
+    lang = new Lang();
 
-    new PaperCommandManager(this).registerCommand(new ClearCommand());
+    // Initialize classes
+    CommandManager.init();
+    EventManager.init();
 
     getLogger()
         .info(
             "NoMoreDroppedItems enabled in "
                 + Math.subtractExact(System.currentTimeMillis(), startTime)
                 + "ms");
+  }
+
+  @Override
+  public void onDisable() {
+    long startTime = System.currentTimeMillis();
+
+    getLogger().info("NoMoreDroppedItems disabled in " + (System.currentTimeMillis() - startTime) + "ms");
   }
 }
