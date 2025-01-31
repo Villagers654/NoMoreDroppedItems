@@ -53,10 +53,7 @@ public class ItemDropListener implements Listener {
     List<ItemStack> itemStacks = event.getDrops();
 
     itemStacks.removeIf(
-        itemStack -> {
-          assert excludedItems != null;
-          return excludedItems.contains(itemStack.getType().name());
-        });
+        itemStack -> excludedItems.contains(itemStack.getType().name()));
 
     RegionContainer container = WorldGuard.getInstance().getPlatform().getRegionContainer();
     RegionQuery query = container.createQuery();
@@ -100,6 +97,10 @@ public class ItemDropListener implements Listener {
   private void handleExplosion(World world, Location center, List<Block> blocks) {
     if (!checkFlag(Flags.EXPLOSION_DROPS_ENABLED, center)) {
       return;
+    }
+
+    for (Block block : blocks) {
+      block.getDrops().clear();
     }
 
     double maxDistance =
