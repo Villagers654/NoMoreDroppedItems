@@ -11,6 +11,7 @@ import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import com.sk89q.worldguard.protection.regions.RegionContainer;
 import com.sk89q.worldguard.protection.regions.RegionQuery;
 import java.util.*;
+import java.util.logging.Level;
 import java.util.stream.Collectors;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -149,14 +150,7 @@ public class ItemDropListener implements Listener {
   private boolean checkFlag(StateFlag flag, Location loc) {
     RegionContainer container = WorldGuard.getInstance().getPlatform().getRegionContainer();
     RegionQuery query = container.createQuery();
-    ApplicableRegionSet set = query.getApplicableRegions(BukkitAdapter.adapt(loc));
 
-    for (ProtectedRegion region : set.getRegions()) {
-      if (Objects.equals(region.getFlag(flag), State.DENY)) {
-        return true;
-      }
-    }
-
-    return false;
+    return !query.testState(BukkitAdapter.adapt(loc), null, flag);
   }
 }
